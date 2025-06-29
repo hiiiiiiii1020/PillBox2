@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 药物提醒助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .app-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .app-header { text-align: center; margin-bottom: 30px; }
+        .app-title { font-size: 2.2em; color: #333; margin-bottom: 10px; font-weight: 600; }
+        .app-subtitle { color: #666; font-size: 1.1em; }
+        .medicine-group, .esp-section, .usage-info {
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+        }
+        .medicine-header, .esp-header, .usage-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-wrapper { flex: 1; }
+        .input-label { margin-bottom: 5px; display: block; font-weight: 500; }
+        .text-input, .time-input {
+            width: 100%; padding: 12px 15px;
+            border: 2px solid #e2e8f0; border-radius: 10px;
+        }
+        .send-button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white; border: none;
+            padding: 15px; border-radius: 30px;
+            font-weight: bold; width: 100%;
+        }
+        .status-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 4px solid #48bb78;
+        }
+        .status-message { font-size: 0.95em; }
+        .success { border-left-color: #48bb78; }
+        .error { border-left-color: #f56565; }
+        .warning { border-left-color: #ed8936; }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <h1 class="app-title">💊 药物提醒助手</h1>
+        <p class="app-subtitle">智能药物提醒系统</p>
+    </div>
+
+    <!-- 药物输入 -->
+    <div class="medicine-group">
+        <div class="medicine-header">💊 药物1</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label">药品名称</label>
+                <input id="textbox1" class="text-input" placeholder="如：VitaminC">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">提醒时间</label>
+                <input type="time" id="timepicker1" class="time-input" value="08:00">
+            </div>
+        </div>
+    </div>
+
+    <div class="medicine-group">
+        <div class="medicine-header">💊 药物2</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label">药品名称</label>
+                <input id="textbox2" class="text-input" placeholder="如：Aspirin">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">提醒时间</label>
+                <input type="time" id="timepicker2" class="time-input" value="12:00">
+            </div>
+        </div>
+    </div>
+
+    <div class="medicine-group">
+        <div class="medicine-header">💊 药物3</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label">药品名称</label>
+                <input id="textbox3" class="text-input" placeholder="如：Calcium">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label">提醒时间</label>
+                <input type="time" id="timepicker3" class="time-input" value="20:00">
+            </div>
+        </div>
+    </div>
+
+    <!-- ESP32设置 -->
+    <div class="esp-section">
+        <div class="esp-header">🌐 ESP32 设备 IP 地址</div>
+        <input type="text" id="textboxESPIP" class="text-input" placeholder="如：192.168.1.100" value="192.168.1.100">
+    </div>
+
+    <button class="send-button" onclick="sendReminders()">📤 发送所有提醒设置</button>
+
+    <div class="status-container success" id="statusContainer">
+        <div class="status-message" id="labelStatus">准备就绪，请设置药物提醒</div>
+    </div>
+
+    <div class="usage-info">
+        <div class="usage-title">💡 使用说明</div>
+        <ol class="usage-steps">
+            <li><strong>输入药品信息：</strong>在对应文本框中输入药品名称和提醒时间</li>
+            <li><strong>设置ESP32 IP：</strong>输入您的ESP32设备IP地址（可从串口获取）</li>
+            <li><strong>发送设置：</strong>点击发送按钮，向ESP32发送提醒设置</li>
+            <li><strong>设备交互：</strong>
+                <ul style="margin-left: 20px;">
+                    <li>到时间后OLED显示提醒，蜂鸣器响铃</li>
+                    <li>短按按钮切换页面（电量/电压/提醒）</li>
+                    <li>长按按钮清除提醒并停止蜂鸣器</li>
+                    <li>自动关屏，按键唤醒显示</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+</div>
+
+<script>
+    async function sendReminders() {
+        const button = document.querySelector('.send-button');
+        const espIP = document.getElementById('textboxESPIP').value.trim();
+        const labelStatus = document.getElementById('labelStatus');
+
+        if (!espIP) return labelStatus.textContent = '❌ 请输入 ESP32 IP 地址';
+
+        button.disabled = true;
+        labelStatus.textContent = '正在发送...';
+
+        let total = 0, success = 0;
+
+        for (let i = 1; i <= 3; i++) {
+            const pill = document.getElementById(`textbox${i}`).value.trim();
+            const time = document.getElementById(`timepicker${i}`).value;
+
+            if (pill && time) {
+                total++;
+                const url = `http://${espIP}/set?time=${time}&pill=${encodeURIComponent(pill)}`;
+                try {
+                    await fetch(url, { method: 'GET' });
+                    success++;
+                } catch (e) {
+                    console.warn('发送失败:', url);
+                }
+            }
+        }
+
+        if (total === 0) labelStatus.textContent = '⚠️ 没有设置任何药物';
+        else if (success === total) labelStatus.textContent = `✅ 成功设置 ${success} 个药物提醒`;
+        else labelStatus.textContent = `⚠️ 成功 ${success}/${total} 个，部分失败`;
+
+        button.disabled = false;
+    }
+</script>
+</body>
+</html>
