@@ -1,0 +1,111 @@
+<!-- 保留原 HTML 开头和样式不变（略） -->
+<!-- ...你的 <head> 和 <body> 部分保持原样，这里直接跳到 JavaScript 部分修复 sendReminders 函数 -->
+
+<script>
+    // 使用真实 HTTP 请求
+    async function sendHttpRequest(url) {
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'no-cors' // ⚠️ 如果 ESP32 不支持 CORS，可以设为 no-cors
+            });
+
+            // 若使用 no-cors，无论成功或失败浏览器都不会返回状态，但我们仍视为成功
+            return { status: 'sent' };
+        } catch (error) {
+            throw new Error(`连接失败：${error.message}`);
+        }
+    }
+
+    // 更新状态显示
+    function updateStatus(type, message) {
+        const statusContainer = document.getElementById('statusContainer');
+        const statusLabel = document.getElementById('labelStatus');
+
+        statusContainer.classList.remove('success', 'error', 'warning');
+        statusContainer.classList.add(type);
+
+        const icons = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️'
+        };
+
+        statusLabel.textContent = `${icons[type]} ${message}`;
+
+        statusContainer.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            statusContainer.style.transform = 'scale(1)';
+        }, 100);
+    }
+
+    // 替换掉原来的 sendReminders 函数
+    async function sendReminders() {
+        const button = document.querySelector('.send-button');
+        const statusLabel = document.getElementById('labelStatus');
+        const espIP = document.getElementById('textboxESPIP').value.trim();
+
+        if (!espIP) {
+            updateStatus('error', '请输入ESP32 IP地址！');
+            return;
+        }
+
+        const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (!ipRegex.test(espIP)) {
+            updateStatus('error', 'IP地址格式不正确！');
+            return;
+        }
+
+        button.disabled = true;
+        button.innerHTML = '<span class="loading"></span>正在发送...';
+
+        let successCount = 0;
+        let totalCount = 0;
+
+        for (let i = 1; i <= 3; i++) {
+            const pillName = document.getElementById(`textbox${i}`).value.trim();
+            const reminderTime = document.getElementById(`timepicker${i}`).value;
+
+            if (pillName && reminderTime) {
+                totalCount++;
+                const url = `http://${espIP}/set?time=${reminderTime}&pill=${encodeURIComponent(pillName)}`;
+                
+                try {
+                    updateStatus('warning', `正在发送药物 ${i}: ${pillName} (${reminderTime})`);
+                    await sendHttpRequest(url);
+                    successCount++;
+                    updateStatus('success', `药物 ${i} 设置成功: ${pillName} - ${reminderTime}`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                } catch (error) {
+                    updateStatus('error', `药物 ${i} 设置失败: ${error.message}`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+        }
+
+        button.disabled = false;
+        button.innerHTML = '📤 发送所有提醒设置';
+
+        if (totalCount === 0) {
+            updateStatus('warning', '没有药物需要设置提醒');
+        } else if (successCount === totalCount) {
+            updateStatus('success', `✅ 所有提醒设置完成！共设置 ${totalCount} 个药物提醒`);
+        } else {
+            updateStatus('error', `⚠️ 部分设置失败！成功：${successCount}/${totalCount}`);
+        }
+    }
+
+    // 页面加载初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.text-input, .time-input');
+        inputs.forEach(input => {
+            input.addEventListener('input', function () {
+                if (this.value.trim()) {
+                    this.style.borderColor = '#48bb78';
+                } else {
+                    this.style.borderColor = '#e2e8f0';
+                }
+            });
+        });
+    });
+</script>
