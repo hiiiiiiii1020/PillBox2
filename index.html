@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💊 药物提醒助手</title>
+    <style>
+        /* 样式与设计完全保留 */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .app-container {
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+            border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px; width: 100%; max-width: 500px; animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp { from {opacity: 0; transform: translateY(30px);} to {opacity: 1; transform: translateY(0);} }
+        .app-header { text-align: center; margin-bottom: 30px; }
+        .app-title { font-size: 2.2em; color: #333; margin-bottom: 10px; font-weight: 600; }
+        .app-subtitle { color: #666; font-size: 1.1em; }
+
+        .medicine-group, .esp-section, .usage-info {
+            border-radius: 15px; padding: 20px; margin-bottom: 20px;
+            border: 2px solid #e0e7ff; background: #f8f9ff;
+        }
+        .esp-section { background: #fff7ed; border-color: #fdba74; }
+        .usage-info { background: #f0fff4; border-color: #bbf7d0; }
+        .medicine-header, .esp-header, .usage-title {
+            display: flex; align-items: center; font-weight: 600;
+            font-size: 1.1em; margin-bottom: 15px;
+        }
+        .medicine-icon { font-size: 1.3em; margin-right: 8px; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        .input-wrapper { flex: 1; position: relative; }
+        .input-label { display: block; margin-bottom: 5px; font-weight: 500; color: #4a5568; font-size: 0.9em; }
+        .text-input, .time-input {
+            width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0;
+            border-radius: 10px; font-size: 1em; background: white;
+            transition: all 0.3s ease;
+        }
+        .text-input:focus, .time-input:focus {
+            outline: none; border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1); transform: translateY(-1px);
+        }
+        .send-button {
+            background: linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);
+            color: white; border: none; padding: 15px 30px; border-radius: 50px;
+            font-size: 1.1em; font-weight: 600; cursor: pointer; width: 100%;
+            margin-bottom: 20px; transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(79,172,254,0.3);
+        }
+        .send-button:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(79,172,254,0.4); }
+        .send-button:disabled { background: #e2e8f0; color: #a0aec0; cursor: not-allowed; box-shadow: none; }
+        .status-container {
+            background: #f7fafc; border-radius: 10px; padding: 15px;
+            border-left: 4px solid #48bb78; margin-bottom: 20px;
+        }
+        .status-label { font-weight: 600; color: #2d3748; margin-bottom: 5px; }
+        .status-message { color: #4a5568; font-size: 0.95em; }
+        .loading {
+            display: inline-block; width: 20px; height: 20px;
+            border: 3px solid #f3f3f3; border-top: 3px solid #667eea;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-right: 10px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .success { border-left-color: #48bb78; }
+        .error { border-left-color: #f56565; }
+        .warning { border-left-color: #ed8936; }
+        @media (max-width: 600px) {
+            .app-container { margin: 10px; padding: 20px; }
+            .input-group { flex-direction: column; }
+            .app-title { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <h1 class="app-title">💊 药物提醒助手</h1>
+        <p class="app-subtitle">智能药物提醒系统</p>
+    </div>
+
+    <!-- 药物输入 -->
+    <div class="medicine-group">
+        <div class="medicine-header"><span class="medicine-icon">💊</span>药物 1</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label" for="textbox1">药品名称</label>
+                <input type="text" id="textbox1" class="text-input" placeholder="如：VitaminC">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label" for="timepicker1">提醒时间</label>
+                <input type="time" id="timepicker1" class="time-input" value="08:00">
+            </div>
+        </div>
+    </div>
+
+    <div class="medicine-group">
+        <div class="medicine-header"><span class="medicine-icon">💊</span>药物 2</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label" for="textbox2">药品名称</label>
+                <input type="text" id="textbox2" class="text-input" placeholder="如：Aspirin">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label" for="timepicker2">提醒时间</label>
+                <input type="time" id="timepicker2" class="time-input" value="12:00">
+            </div>
+        </div>
+    </div>
+
+    <div class="medicine-group">
+        <div class="medicine-header"><span class="medicine-icon">💊</span>药物 3</div>
+        <div class="input-group">
+            <div class="input-wrapper">
+                <label class="input-label" for="textbox3">药品名称</label>
+                <input type="text" id="textbox3" class="text-input" placeholder="如：Calcium">
+            </div>
+            <div class="input-wrapper">
+                <label class="input-label" for="timepicker3">提醒时间</label>
+                <input type="time" id="timepicker3" class="time-input" value="20:00">
+            </div>
+        </div>
+    </div>
+
+    <!-- ESP32 设置 -->
+    <div class="esp-section">
+        <div class="esp-header"><span class="medicine-icon">🌐</span>ESP32 设备设置</div>
+        <div class="input-wrapper">
+            <label class="input-label" for="textboxESPIP">ESP32 IP 地址</label>
+            <input type="text" id="textboxESPIP" class="text-input" value="192.168.1.100">
+        </div>
+    </div>
+
+    <!-- 发送按钮 -->
+    <button class="send-button" onclick="sendReminders()">📤 发送所有提醒设置</button>
+
+    <!-- 状态提示 -->
+    <div class="status-container success" id="statusContainer">
+        <div class="status-label">📱 状态信息</div>
+        <div class="status-message" id="labelStatus">准备就绪，请设置药物提醒</div>
+    </div>
+
+    <!-- 使用说明 -->
+    <div class="usage-info">
+        <div class="usage-title"><span style="margin-right:8px;">💡</span>使用说明</div>
+        <ol class="usage-steps">
+            <li><strong>输入药品信息：</strong>在文本框输入药名与时间</li>
+            <li><strong>设置ESP32 IP：</strong>输入 ESP32 的 IP 地址</li>
+            <li><strong>点击发送按钮：</strong>开始发送提醒到设备</li>
+        </ol>
+    </div>
+</div>
+
+<script>
+async function sendReminders() {
+    const button = document.querySelector('.send-button');
+    const espIP = document.getElementById('textboxESPIP').value.trim();
+    const statusContainer = document.getElementById('statusContainer');
+    const statusLabel = document.getElementById('labelStatus');
+
+    if (!espIP || !/^(\d{1,3}\.){3}\d{1,3}$/.test(espIP)) {
+        updateStatus('error', '请输入有效的 ESP32 IP 地址！');
+        return;
+    }
+
+    button.disabled = true;
+    button.innerHTML = '<span class="loading"></span> 正在发送...';
+    let successCount = 0, totalCount = 0;
+
+    for (let i = 1; i <= 3; i++) {
+        const pill = document.getElementById(`textbox${i}`).value.trim();
+        const time = document.getElementById(`timepicker${i}`).value;
+
+        if (pill && time) {
+            totalCount++;
+            const url = `http://${espIP}/set?time=${time}&pill=${encodeURIComponent(pill)}`;
+            updateStatus('warning', `发送第 ${i} 个药物：${pill} (${time})`);
+
+            try {
+                await fetch(url);
+                updateStatus('success', `✅ 药物 ${i} 设置成功：${pill} @ ${time}`);
+                successCount++;
+            } catch (err) {
+                updateStatus('error', `❌ 药物 ${i} 发送失败：${err.message}`);
+            }
+            await new Promise(r => setTimeout(r, 400));
+        }
+    }
+
+    button.disabled = false;
+    button.innerHTML = '📤 发送所有提醒设置';
+    if (totalCount === 0) updateStatus('warning', '请填写至少一个提醒信息！');
+    else if (successCount === totalCount) updateStatus('success', `✅ 成功设置全部 ${totalCount} 项提醒！`);
+    else updateStatus('error', `⚠️ 成功 ${successCount} / ${totalCount}`);
+}
+
+function updateStatus(type, msg) {
+    const container = document.getElementById('statusContainer');
+    const label = document.getElementById('labelStatus');
+    container.className = `status-container ${type}`;
+    label.textContent = msg;
+}
+</script>
+</body>
+</html>
